@@ -3,7 +3,7 @@ import Foundation
 class MealPlanAPI {
     static let shared = MealPlanAPI()
     
-    private let baseURL = "http://127.0.0.1:5001/api"
+    private let baseURL = "https://mealplanner-4owd.onrender.com/api"
     
     private init() {}
     
