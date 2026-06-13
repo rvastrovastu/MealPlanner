@@ -163,6 +163,12 @@ struct DashboardView: View {
                 .font(.headline)
             
             NavigationLink {
+                SmartGroceryIntegrationView()
+            } label: {
+                Label("Smart Grocery", systemImage: "cart.badge.plus")
+            }
+            
+            NavigationLink {
                 WeightTrackerView()
             } label: {
                 QuickActionRow(icon: "scalemass.fill", title: "Weight Tracker", subtitle: "Add and view weight history")

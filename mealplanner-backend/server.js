@@ -411,6 +411,116 @@ Return JSON only:
     });
   }
 });
+// SMART GROCERY INTEGRATIONS
+
+const storeSearchUrls = {
+  walmart: "https://www.walmart.com/search?q=",
+  instacart: "https://www.instacart.com/store/s?k=",
+  amazonFresh: "https://www.amazon.com/s?k="
+};
+
+function normalizeGroceryItems(items = []) {
+  return items.map(item => ({
+    name: item.name || item,
+    quantity: item.quantity || "1",
+    category: item.category || "General",
+    estimatedPrice: item.estimatedPrice || 0,
+    pantryAvailable: item.pantryAvailable || false
+  }));
+}
+
+// Generate store shopping links
+app.post("/api/grocery/store-links", (req, res) => {
+  const { items } = req.body;
+
+  const groceryItems = normalizeGroceryItems(items);
+
+  const links = groceryItems.map(item => {
+    const query = encodeURIComponent(item.name);
+
+    return {
+      name: item.name,
+      quantity: item.quantity,
+      walmart: storeSearchUrls.walmart + query,
+      instacart: storeSearchUrls.instacart + query,
+      amazonFresh: storeSearchUrls.amazonFresh + query
+    };
+  });
+
+  res.json({ links });
+});
+
+// Export grocery list
+app.post("/api/grocery/export", (req, res) => {
+  const { items } = req.body;
+
+  const groceryItems = normalizeGroceryItems(items);
+
+  const text = groceryItems
+    .map(item => `- ${item.quantity} ${item.name}`)
+    .join("\n");
+
+  res.json({
+    title: "Digital Dine Grocery List",
+    text
+  });
+});
+
+// Pantry deduction
+app.post("/api/grocery/pantry-deduction", (req, res) => {
+  const { groceryItems, pantryItems } = req.body;
+
+  const pantryNames = pantryItems.map(p => p.name.toLowerCase());
+
+  const result = groceryItems.map(item => {
+    const inPantry = pantryNames.includes(item.name.toLowerCase());
+
+    return {
+      ...item,
+      pantryAvailable: inPantry,
+      needToBuy: !inPantry
+    };
+  });
+
+  res.json({
+    needToBuy: result.filter(i => i.needToBuy),
+    alreadyInPantry: result.filter(i => i.pantryAvailable)
+  });
+});
+
+// Estimated cost by store
+app.post("/api/grocery/cost-estimate", (req, res) => {
+  const { items } = req.body;
+
+  const groceryItems = normalizeGroceryItems(items);
+
+  const baseTotal = groceryItems.reduce((sum, item) => {
+    return sum + Number(item.estimatedPrice || 3.5);
+  }, 0);
+
+  res.json({
+    walmart: Number((baseTotal * 0.95).toFixed(2)),
+    instacart: Number((baseTotal * 1.12).toFixed(2)),
+    amazonFresh: Number((baseTotal * 1.05).toFixed(2))
+  });
+});
+
+// Need to buy checklist
+app.post("/api/grocery/need-to-buy", (req, res) => {
+  const { items } = req.body;
+
+  const groceryItems = normalizeGroceryItems(items);
+
+  res.json({
+    checklist: groceryItems
+      .filter(item => !item.pantryAvailable)
+      .map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        checked: false
+      }))
+  });
+});
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
