@@ -521,6 +521,86 @@ app.post("/api/grocery/need-to-buy", (req, res) => {
       }))
   });
 });
+// ADVANCED GROCERY FEATURES
+
+app.post("/api/grocery/coupons", (req, res) => {
+  const { items } = req.body;
+
+  const groceryItems = normalizeGroceryItems(items);
+
+  const coupons = groceryItems.map(item => ({
+    item: item.name,
+    store: "Walmart",
+    title: `Possible savings on ${item.name}`,
+    description: `Check weekly deals or store coupons for ${item.name}.`,
+    estimatedSavings: Number((item.estimatedPrice * 0.10 || 0.5).toFixed(2))
+  }));
+
+  res.json({ coupons });
+});
+
+app.post("/api/grocery/budget-optimize", async (req, res) => {
+  const { budget, items, dietType, goal } = req.body || {};
+  const groceryItems = normalizeGroceryItems(items);
+
+  const totalCost = groceryItems.reduce((sum, item) => {
+    return sum + Number(item.estimatedPrice || 3.5);
+  }, 0);
+
+  try {
+    const prompt = `
+You are an AI grocery budget optimizer.
+
+Budget: $${budget}
+Current estimated cost: $${totalCost}
+Diet Type: ${dietType || "Any"}
+Goal: ${goal || "Save money"}
+
+Grocery items:
+${JSON.stringify(groceryItems)}
+
+Return JSON only:
+{
+  "budget": ${Number(budget || 0)},
+  "currentEstimatedCost": ${Number(totalCost || 0)},
+  "estimatedSavings": 0,
+  "isWithinBudget": true,
+  "recommendations": [
+    {
+      "item": "...",
+      "suggestion": "...",
+      "reason": "...",
+      "estimatedSavings": 0
+    }
+  ]
+}
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.6,
+      response_format: { type: "json_object" }
+    });
+
+    res.json(JSON.parse(completion.choices[0].message.content));
+  } catch (error) {
+    console.error("Budget optimizer error:", error.message || error);
+
+    res.json({
+      budget: Number(budget || 0),
+      currentEstimatedCost: Number(totalCost.toFixed(2)),
+      estimatedSavings: Number((totalCost * 0.12).toFixed(2)),
+      isWithinBudget: totalCost <= Number(budget || 0),
+      recommendations: groceryItems.map(item => ({
+        item: item.name,
+        suggestion: `Compare prices for ${item.name} at Walmart, Instacart, and Amazon Fresh.`,
+        reason: "Fallback savings recommendation generated when AI is unavailable.",
+        estimatedSavings: Number(((item.estimatedPrice || 3.5) * 0.10).toFixed(2))
+      }))
+    });
+  }
+});
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
