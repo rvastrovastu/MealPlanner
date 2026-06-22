@@ -9,9 +9,12 @@ const openai = new OpenAI({
 });
 
 const app = express();
+console.log("✅ Running updated MealPlanner server.js");
 
 app.use(cors());
-app.use(express.json());
+// FIX: default express.json() body limit is ~100kb, which is too small for
+// base64-encoded photos sent to /api/ai/photo-calorie-scan. Bump it up.
+app.use(express.json({ limit: "15mb" }));
 
 app.get("/", (req, res) => {
   res.json({ message: "Meal Planner Backend Running 🚀" });
@@ -96,7 +99,7 @@ app.post("/api/meal-plan/generate", (req, res) => {
           8,
           7,
           portions("1 bowl oats + fruit", "1.5 bowls oats + 1 banana", "1 bowl oats + 1 fruit", "0.5 bowl oats + fruit slices"),
-          recipe("5 mins", "10 mins", ["Boil milk.", "Add oats and cook until soft.", "Top with fruit.", "Serve warm."], "Use berries instead of banana for low sugar.")
+          recipe("5 mins", "10 mins", ["Boil milk.", "Add oats and cook until soft.", "Top with fruit.", "Serve warm."], "Use boiled milk for creamier texture.")
         ),
         lunch: createMeal(
           "Dal, Brown Rice and Salad",
@@ -107,7 +110,7 @@ app.post("/api/meal-plan/generate", (req, res) => {
           14,
           12,
           portions("1 cup dal + 1 cup rice + salad", "1.5 cups dal + 1.5 cups rice + salad", "1 cup dal + 1 cup rice + salad", "0.5 cup dal + 0.5 cup rice + salad"),
-          recipe("10 mins", "25 mins", ["Cook dal with turmeric.", "Cook brown rice.", "Prepare cucumber tomato salad.", "Serve together."], "Add lemon for taste.")
+          recipe("10 mins", "25 mins", ["Cook dal with turmeric.", "Cook brown rice.", "Prepare cucumber tomato salad.", "Serve together."], "Add a squeeze of lemon before serving.")
         ),
         eveningSnack: snack,
         dinner: createMeal(
@@ -119,50 +122,50 @@ app.post("/api/meal-plan/generate", (req, res) => {
           22,
           8,
           portions("2 rotis + 1 cup paneer bhurji", "3 rotis + 1.5 cups paneer bhurji", "2 rotis + 1 cup paneer bhurji", "1 roti + 0.5 cup paneer bhurji"),
-          recipe("10 mins", "20 mins", ["Crumble paneer.", "Cook tomato and spices.", "Add paneer and mix.", "Serve with roti."], "Use less oil for lighter dinner.")
+          recipe("10 mins", "20 mins", ["Crumble paneer.", "Cook tomato and spices.", "Add paneer and mix.", "Serve with roti."], "Use fresh paneer for best texture.")
         )
       },
       {
         day: "Tuesday",
-        breakfast: createMeal("Besan Chilla with Curd", ["Besan", "Curd", "Spinach"], 330, 18, 38, 10, 6, portions("2 chillas + curd", "3 chillas + 1 cup curd", "2 chillas + 0.75 cup curd", "1 chilla + 0.5 cup curd"), recipe("8 mins", "12 mins", ["Mix besan with water.", "Add spinach and spices.", "Cook chilla on pan.", "Serve with curd."], "Add grated vegetables for more fiber.")),
-        lunch: createMeal("Rajma Rice", ["Rajma", "Rice", "Onion", "Tomato"], 620, 24, 85, 12, 13, portions("1 cup rajma + 1 cup rice", "1.5 cups rajma + 1.5 cups rice", "1 cup rajma + 1 cup rice", "0.5 cup rajma + 0.5 cup rice"), recipe("15 mins", "35 mins", ["Cook soaked rajma.", "Prepare onion tomato masala.", "Mix rajma with masala.", "Serve with rice."], "Use brown rice for more fiber.")),
+        breakfast: createMeal("Besan Chilla with Curd", ["Besan", "Curd", "Spinach"], 330, 18, 38, 10, 6, portions("2 chillas + curd", "3 chillas + curd", "2 chillas + curd", "1 chilla + curd"), recipe("5 mins", "10 mins", ["Mix besan with water and spices.", "Add chopped spinach.", "Cook chillas on a pan.", "Serve with curd."], "Add a pinch of ajwain for digestion.")),
+        lunch: createMeal("Rajma Rice", ["Rajma", "Rice", "Onion", "Tomato"], 620, 24, 85, 12, 13, portions("1 cup rajma + 1 cup rice", "1.5 cups rajma + 1.5 cups rice", "1 cup rajma + 1 cup rice", "0.5 cup rajma + 0.5 cup rice"), recipe("10 mins", "30 mins", ["Soak and cook rajma.", "Saute onion and tomato.", "Combine and simmer.", "Serve with rice."], "Soaking rajma overnight reduces cook time.")),
         eveningSnack: snack,
-        dinner: createMeal("Veg Khichdi", ["Rice", "Moong Dal", "Vegetables"], 480, 20, 65, 10, 9, portions("1.5 bowls khichdi", "2 bowls khichdi", "1.5 bowls khichdi", "1 bowl khichdi"), recipe("10 mins", "25 mins", ["Wash rice and dal.", "Add vegetables.", "Pressure cook.", "Serve warm."], "Good light dinner option."))
+        dinner: createMeal("Veg Khichdi", ["Rice", "Moong Dal", "Vegetables"], 480, 20, 65, 10, 9, portions("1.5 bowls khichdi", "2 bowls khichdi", "1.5 bowls khichdi", "0.75 bowl khichdi"), recipe("5 mins", "20 mins", ["Wash rice and dal.", "Add chopped vegetables.", "Pressure cook until soft.", "Serve hot with ghee."], "A comforting, easy-to-digest dinner option."))
       },
       {
         day: "Wednesday",
-        breakfast: createMeal("Poha with Peanuts", ["Poha", "Peanuts", "Peas"], 360, 12, 55, 11, 5, portions("1 bowl poha", "1.5 bowls poha", "1 bowl poha", "0.75 bowl poha"), recipe("8 mins", "12 mins", ["Rinse poha.", "Cook peas and spices.", "Add poha.", "Top with peanuts."], "Add lemon and coriander.")),
-        lunch: createMeal("Chole with Roti", ["Chickpeas", "Wheat Flour", "Salad"], 610, 26, 78, 16, 14, portions("2 rotis + 1 cup chole", "3 rotis + 1.5 cups chole", "2 rotis + 1 cup chole", "1 roti + 0.5 cup chole"), recipe("15 mins", "35 mins", ["Cook chickpeas.", "Prepare masala.", "Simmer chole.", "Serve with roti."], "Add salad for better digestion.")),
+        breakfast: createMeal("Poha with Peanuts", ["Poha", "Peanuts", "Peas"], 360, 12, 55, 11, 5, portions("1 bowl poha", "1.5 bowls poha", "1 bowl poha", "0.5 bowl poha"), recipe("5 mins", "10 mins", ["Rinse poha until soft.", "Saute peanuts and peas.", "Mix in poha with spices.", "Garnish and serve."], "Add lemon juice for extra flavor.")),
+        lunch: createMeal("Chole with Roti", ["Chickpeas", "Wheat Flour", "Salad"], 610, 26, 78, 16, 14, portions("2 rotis + 1 cup chole", "3 rotis + 1.5 cups chole", "2 rotis + 1 cup chole", "1 roti + 0.5 cup chole"), recipe("10 mins", "25 mins", ["Cook soaked chickpeas.", "Prepare chole masala gravy.", "Combine and simmer.", "Serve with roti and salad."], "Pressure cooking chickpeas saves time.")),
         eveningSnack: snack,
-        dinner: createMeal("Tofu Stir Fry", ["Tofu", "Bell Pepper", "Broccoli"], 500, 30, 45, 18, 10, portions("1.5 cups tofu stir fry", "2 cups tofu stir fry", "1.5 cups tofu stir fry", "1 cup tofu stir fry"), recipe("10 mins", "15 mins", ["Cube tofu.", "Stir fry vegetables.", "Add tofu.", "Season and serve."], "High protein dinner."))
+        dinner: createMeal("Tofu Stir Fry", ["Tofu", "Bell Pepper", "Broccoli"], 500, 30, 45, 18, 10, portions("1.5 cups tofu stir fry", "2 cups tofu stir fry", "1.5 cups tofu stir fry", "0.75 cup tofu stir fry"), recipe("10 mins", "15 mins", ["Pan-fry tofu until golden.", "Stir fry vegetables.", "Combine with sauce.", "Serve hot."], "High protein, light dinner option."))
       },
       {
         day: "Thursday",
-        breakfast: createMeal("Idli Sambar", ["Idli Batter", "Dal", "Vegetables"], 340, 15, 58, 5, 6, portions("3 idlis + sambar", "4 idlis + 1.5 cups sambar", "3 idlis + 1 cup sambar", "2 idlis + 0.5 cup sambar"), recipe("5 mins", "20 mins", ["Steam idlis.", "Cook sambar dal.", "Add vegetables.", "Serve hot."], "Use less oil in tempering.")),
-        lunch: createMeal("Quinoa Pulao", ["Quinoa", "Mixed Vegetables", "Curd"], 570, 22, 70, 15, 11, portions("1.5 cups quinoa pulao + curd", "2 cups quinoa pulao + 1 cup curd", "1.5 cups quinoa pulao + 0.75 cup curd", "1 cup quinoa pulao + 0.5 cup curd"), recipe("10 mins", "20 mins", ["Wash quinoa.", "Saute vegetables.", "Cook quinoa with spices.", "Serve with curd."], "Good high-fiber lunch.")),
+        breakfast: createMeal("Idli Sambar", ["Idli Batter", "Dal", "Vegetables"], 340, 15, 58, 5, 6, portions("3 idlis + sambar", "4 idlis + sambar", "3 idlis + sambar", "2 idlis + sambar"), recipe("5 mins", "15 mins", ["Steam idlis.", "Prepare sambar with vegetables.", "Serve idlis with sambar."], "Pair with coconut chutney if available.")),
+        lunch: createMeal("Quinoa Pulao", ["Quinoa", "Mixed Vegetables", "Curd"], 570, 22, 70, 15, 11, portions("1.5 cups quinoa pulao", "2 cups quinoa pulao", "1.5 cups quinoa pulao", "0.75 cup quinoa pulao"), recipe("5 mins", "20 mins", ["Rinse quinoa.", "Saute vegetables with spices.", "Add quinoa and cook.", "Serve with curd."], "A lighter, high-fiber alternative to rice.")),
         eveningSnack: snack,
-        dinner: createMeal("Dal Soup with Roti", ["Dal", "Wheat Flour", "Spinach"], 460, 23, 52, 12, 9, portions("2 rotis + 1 bowl dal soup", "3 rotis + 1.5 bowls soup", "2 rotis + 1 bowl soup", "1 roti + 0.75 bowl soup"), recipe("10 mins", "25 mins", ["Cook dal.", "Blend lightly.", "Add spinach.", "Serve with roti."], "Light and protein-rich."))
+        dinner: createMeal("Dal Soup with Roti", ["Dal", "Wheat Flour", "Spinach"], 460, 23, 52, 12, 9, portions("2 rotis + 1 bowl soup", "3 rotis + 1.5 bowls soup", "2 rotis + 1 bowl soup", "1 roti + 0.5 bowl soup"), recipe("5 mins", "20 mins", ["Cook dal until soft.", "Blend into a soup consistency.", "Add spinach and simmer.", "Serve with roti."], "Light and easy on the stomach for dinner."))
       },
       {
         day: "Friday",
-        breakfast: createMeal("Greek Yogurt Bowl", ["Greek Yogurt", "Berries", "Seeds"], 320, 22, 35, 8, 6, portions("1 bowl yogurt + berries", "1.5 bowls yogurt + berries", "1 bowl yogurt + berries", "0.75 bowl yogurt + berries"), recipe("5 mins", "0 mins", ["Add yogurt to bowl.", "Top with berries.", "Add seeds.", "Serve chilled."], "Choose unsweetened yogurt.")),
-        lunch: createMeal("Veg Biryani with Raita", ["Rice", "Vegetables", "Curd"], 650, 20, 90, 18, 9, portions("1.5 cups biryani + raita", "2 cups biryani + 1 cup raita", "1.5 cups biryani + 0.75 cup raita", "1 cup biryani + 0.5 cup raita"), recipe("15 mins", "30 mins", ["Cook rice.", "Cook vegetables with spices.", "Layer rice and vegetables.", "Serve with raita."], "Use less oil and more vegetables.")),
+        breakfast: createMeal("Greek Yogurt Bowl", ["Greek Yogurt", "Berries", "Seeds"], 320, 22, 35, 8, 6, portions("1 bowl yogurt + berries", "1.5 bowls yogurt + berries", "1 bowl yogurt + berries", "0.5 bowl yogurt + berries"), recipe("5 mins", "0 mins", ["Layer yogurt in a bowl.", "Top with berries and seeds.", "Serve chilled."], "No cooking needed, great for busy mornings.")),
+        lunch: createMeal("Veg Biryani with Raita", ["Rice", "Vegetables", "Curd"], 650, 20, 90, 18, 9, portions("1.5 cups biryani + raita", "2 cups biryani + raita", "1.5 cups biryani + raita", "0.75 cup biryani + raita"), recipe("15 mins", "30 mins", ["Saute vegetables and spices.", "Layer with par-cooked rice.", "Dum cook until done.", "Serve with raita."], "Letting it rest 10 minutes improves flavor.")),
         eveningSnack: snack,
-        dinner: createMeal("Mixed Veg with Dal", ["Vegetables", "Dal", "Roti"], 500, 24, 58, 14, 10, portions("2 rotis + dal + vegetables", "3 rotis + 1.5 cups dal + vegetables", "2 rotis + 1 cup dal + vegetables", "1 roti + 0.5 cup dal + vegetables"), recipe("10 mins", "25 mins", ["Cook dal.", "Cook mixed vegetables.", "Make roti.", "Serve together."], "Balanced home-style dinner."))
+        dinner: createMeal("Mixed Veg with Dal", ["Vegetables", "Dal", "Roti"], 500, 24, 58, 14, 10, portions("2 rotis + dal + vegetables", "3 rotis + dal + vegetables", "2 rotis + dal + vegetables", "1 roti + dal + vegetables"), recipe("10 mins", "20 mins", ["Cook dal separately.", "Saute mixed vegetables.", "Combine and season.", "Serve with roti."], "A balanced, well-rounded dinner."))
       },
       {
         day: "Saturday",
-        breakfast: createMeal("Upma", ["Rava", "Vegetables", "Peanuts"], 370, 12, 58, 10, 6, portions("1 bowl upma", "1.5 bowls upma", "1 bowl upma", "0.75 bowl upma"), recipe("8 mins", "15 mins", ["Roast rava.", "Cook vegetables.", "Add water and rava.", "Top with peanuts."], "Add more vegetables for fiber.")),
-        lunch: createMeal("Paneer Wrap", ["Paneer", "Whole Wheat Wrap", "Lettuce"], 590, 30, 55, 22, 8, portions("1 paneer wrap", "1.5 wraps", "1 wrap", "0.5 wrap"), recipe("10 mins", "15 mins", ["Cook paneer filling.", "Warm wrap.", "Add lettuce.", "Roll and serve."], "Use whole wheat wrap.")),
+        breakfast: createMeal("Upma", ["Rava", "Vegetables", "Peanuts"], 370, 12, 58, 10, 6, portions("1 bowl upma", "1.5 bowls upma", "1 bowl upma", "0.5 bowl upma"), recipe("5 mins", "15 mins", ["Roast rava lightly.", "Saute vegetables and peanuts.", "Add water and cook rava.", "Serve hot."], "Roasting rava first prevents lumps.")),
+        lunch: createMeal("Paneer Wrap", ["Paneer", "Whole Wheat Wrap", "Lettuce"], 590, 30, 55, 22, 8, portions("1 paneer wrap", "1.5 paneer wraps", "1 paneer wrap", "0.5 paneer wrap"), recipe("10 mins", "15 mins", ["Cook spiced paneer filling.", "Warm the wrap.", "Add lettuce and filling.", "Roll and serve."], "Great for a quick, portable lunch.")),
         eveningSnack: snack,
-        dinner: createMeal("Millet Dosa", ["Millet Batter", "Chutney", "Sambar"], 490, 18, 65, 12, 9, portions("2 dosas + sambar", "3 dosas + 1.5 cups sambar", "2 dosas + 1 cup sambar", "1 dosa + 0.5 cup sambar"), recipe("5 mins", "15 mins", ["Heat pan.", "Spread batter.", "Cook dosa.", "Serve with sambar."], "Millets improve fiber intake."))
+        dinner: createMeal("Millet Dosa", ["Millet Batter", "Chutney", "Sambar"], 490, 18, 65, 12, 9, portions("2 dosas + sambar", "3 dosas + sambar", "2 dosas + sambar", "1 dosa + sambar"), recipe("5 mins", "15 mins", ["Heat a dosa pan.", "Spread millet batter thin.", "Cook until crisp.", "Serve with chutney and sambar."], "A gluten-free alternative to wheat dosas."))
       },
       {
         day: "Sunday",
-        breakfast: createMeal("Paratha with Curd", ["Wheat Flour", "Curd", "Vegetables"], 420, 16, 60, 13, 7, portions("1 paratha + curd", "2 parathas + 1 cup curd", "1 paratha + 0.75 cup curd", "0.5 paratha + 0.5 cup curd"), recipe("10 mins", "15 mins", ["Prepare dough.", "Stuff vegetables.", "Cook paratha.", "Serve with curd."], "Use less ghee for lighter meal.")),
-        lunch: createMeal("Family Thali", ["Dal", "Rice", "Roti", "Vegetables", "Salad"], 700, 30, 95, 18, 14, portions("1 thali", "Large thali: dal, rice, 3 rotis, veg, salad", "Medium thali: dal, rice, 2 rotis, veg, salad", "Small thali: dal, rice, 1 roti, veg"), recipe("20 mins", "40 mins", ["Cook dal.", "Cook rice.", "Make roti.", "Prepare vegetables and salad."], "Keep portions balanced.")),
+        breakfast: createMeal("Paratha with Curd", ["Wheat Flour", "Curd", "Vegetables"], 420, 16, 60, 13, 7, portions("1 paratha + curd", "1.5 parathas + curd", "1 paratha + curd", "0.5 paratha + curd"), recipe("10 mins", "15 mins", ["Prepare vegetable stuffing.", "Stuff and roll the paratha.", "Cook on a hot pan with ghee.", "Serve with curd."], "A hearty weekend breakfast option.")),
+        lunch: createMeal("Family Thali", ["Dal", "Rice", "Roti", "Vegetables", "Salad"], 700, 30, 95, 18, 14, portions("1 thali", "1.5 thalis", "1 thali", "0.5 thali"), recipe("20 mins", "40 mins", ["Prepare dal, rice and roti.", "Cook a vegetable side.", "Assemble salad.", "Serve as a complete thali."], "A great option for a relaxed family meal.")),
         eveningSnack: snack,
-        dinner: createMeal("Light Lentil Soup", ["Lentils", "Vegetables", "Toast"], 430, 22, 48, 10, 10, portions("1 bowl soup + toast", "1.5 bowls soup + 2 toast", "1 bowl soup + 1 toast", "0.75 bowl soup + 0.5 toast"), recipe("10 mins", "25 mins", ["Cook lentils.", "Add vegetables.", "Simmer soup.", "Serve with toast."], "Light dinner for better digestion."))
+        dinner: createMeal("Light Lentil Soup", ["Lentils", "Vegetables", "Toast"], 430, 22, 48, 10, 10, portions("1 bowl soup + toast", "1.5 bowls soup + toast", "1 bowl soup + toast", "0.5 bowl soup + toast"), recipe("5 mins", "20 mins", ["Cook lentils with vegetables.", "Blend to desired consistency.", "Toast bread.", "Serve soup with toast."], "Light way to end the week."))
       }
     ],
     groceryList: {
@@ -188,7 +191,6 @@ Original meal: ${mealName}
 Diet type: ${dietType}
 Restrictions: ${(restrictions || []).join(", ")}
 Goal: ${goal}
-
 Return JSON only:
 {
   "originalMeal": "...",
@@ -205,7 +207,6 @@ Return JSON only:
   ]
 }
 `;
-
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [{ role: "user", content: prompt }],
@@ -223,6 +224,7 @@ Return JSON only:
     });
   }
 });
+
 app.post("/api/ai/nutrition-coach", async (req, res) => {
   try {
     const { question, profile } = req.body || {};
@@ -237,6 +239,7 @@ Question:
 ${question}
 
 Give practical, safe, family-friendly nutrition advice.
+
 Keep answer short.
 Return JSON only:
 {
@@ -344,14 +347,10 @@ Return JSON only:
     res.status(500).json({ recipes: [] });
   }
 });
+
 app.post("/api/ai/craving-alternative", async (req, res) => {
   try {
-    const {
-      craving,
-      dietType,
-      goal,
-      restrictions
-    } = req.body || {};
+    const { craving, dietType, goal, restrictions } = req.body || {};
 
     const prompt = `
 Suggest 3 healthier alternatives.
@@ -380,37 +379,21 @@ Return JSON only:
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
-      messages: [
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
-      response_format: {
-        type: "json_object"
-      }
+      response_format: { type: "json_object" }
     });
 
-    res.json(
-      JSON.parse(
-        completion.choices[0].message.content
-      )
-    );
-
+    res.json(JSON.parse(completion.choices[0].message.content));
   } catch (error) {
-
-    console.error(
-      "Craving alternative error:",
-      error
-    );
-
+    console.error("Craving alternative error:", error);
     res.status(500).json({
       craving: req.body?.craving || "",
       alternatives: []
     });
   }
 });
+
 // SMART GROCERY INTEGRATIONS
 
 const storeSearchUrls = {
@@ -420,6 +403,9 @@ const storeSearchUrls = {
 };
 
 function normalizeGroceryItems(items = []) {
+  // FIX: guard against non-array input so callers get a clean error
+  // instead of a 500 from .map() on undefined.
+  if (!Array.isArray(items)) return [];
   return items.map(item => ({
     name: item.name || item,
     quantity: item.quantity || "1",
@@ -431,7 +417,12 @@ function normalizeGroceryItems(items = []) {
 
 // Generate store shopping links
 app.post("/api/grocery/store-links", (req, res) => {
-  const { items } = req.body;
+  const { items } = req.body || {};
+
+  // FIX: validate input before processing
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
 
   const groceryItems = normalizeGroceryItems(items);
 
@@ -452,7 +443,11 @@ app.post("/api/grocery/store-links", (req, res) => {
 
 // Export grocery list
 app.post("/api/grocery/export", (req, res) => {
-  const { items } = req.body;
+  const { items } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
 
   const groceryItems = normalizeGroceryItems(items);
 
@@ -468,12 +463,17 @@ app.post("/api/grocery/export", (req, res) => {
 
 // Pantry deduction
 app.post("/api/grocery/pantry-deduction", (req, res) => {
-  const { groceryItems, pantryItems } = req.body;
+  const { groceryItems, pantryItems } = req.body || {};
 
-  const pantryNames = pantryItems.map(p => p.name.toLowerCase());
+  // FIX: previously this crashed with a 500 if either array was missing.
+  if (!Array.isArray(groceryItems) || !Array.isArray(pantryItems)) {
+    return res.status(400).json({ error: "groceryItems and pantryItems arrays are required" });
+  }
+
+  const pantryNames = pantryItems.map(p => (p.name || "").toLowerCase());
 
   const result = groceryItems.map(item => {
-    const inPantry = pantryNames.includes(item.name.toLowerCase());
+    const inPantry = pantryNames.includes((item.name || "").toLowerCase());
 
     return {
       ...item,
@@ -490,7 +490,11 @@ app.post("/api/grocery/pantry-deduction", (req, res) => {
 
 // Estimated cost by store
 app.post("/api/grocery/cost-estimate", (req, res) => {
-  const { items } = req.body;
+  const { items } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
 
   const groceryItems = normalizeGroceryItems(items);
 
@@ -507,7 +511,11 @@ app.post("/api/grocery/cost-estimate", (req, res) => {
 
 // Need to buy checklist
 app.post("/api/grocery/need-to-buy", (req, res) => {
-  const { items } = req.body;
+  const { items } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
 
   const groceryItems = normalizeGroceryItems(items);
 
@@ -521,10 +529,15 @@ app.post("/api/grocery/need-to-buy", (req, res) => {
       }))
   });
 });
+
 // ADVANCED GROCERY FEATURES
 
 app.post("/api/grocery/coupons", (req, res) => {
-  const { items } = req.body;
+  const { items } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
 
   const groceryItems = normalizeGroceryItems(items);
 
@@ -533,7 +546,7 @@ app.post("/api/grocery/coupons", (req, res) => {
     store: "Walmart",
     title: `Possible savings on ${item.name}`,
     description: `Check weekly deals or store coupons for ${item.name}.`,
-    estimatedSavings: Number((item.estimatedPrice * 0.10 || 0.5).toFixed(2))
+    estimatedSavings: Number(((item.estimatedPrice || 0) * 0.10 || 0.5).toFixed(2))
   }));
 
   res.json({ coupons });
@@ -541,6 +554,11 @@ app.post("/api/grocery/coupons", (req, res) => {
 
 app.post("/api/grocery/budget-optimize", async (req, res) => {
   const { budget, items, dietType, goal } = req.body || {};
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: "items array is required" });
+  }
+
   const groceryItems = normalizeGroceryItems(items);
 
   const totalCost = groceryItems.reduce((sum, item) => {
@@ -601,6 +619,128 @@ Return JSON only:
     });
   }
 });
+
+// FIX: there were TWO definitions of this route in the original file.
+// Express silently ignores the second one, so it was dead code. Merged
+// into a single route that keeps the sensible defaults from the second
+// version.
+app.post("/api/party/generate-menu", (req, res) => {
+  try {
+    const {
+      eventType = "Family Dinner",
+      guestCount = 10,
+      cuisine = "Indian",
+      dietType = "Vegetarian",
+      budget = 200
+    } = req.body || {};
+
+    const guests = Number(guestCount) || 10;
+    const totalBudget = Number(budget) || 200;
+    const perGuestCost = guests > 0 ? totalBudget / guests : 0;
+
+    res.json({
+      eventType,
+      guestCount: guests,
+      cuisine,
+      dietType,
+      budget: totalBudget,
+      expectedCost: totalBudget,
+      perGuestCost: Number(perGuestCost.toFixed(2)),
+      menu: {
+        starter: ["Paneer Tikka", "Veg Cutlet", "Masala Papad"],
+        mainCourse: ["Dal Makhani", "Paneer Butter Masala", "Veg Pulao", "Naan / Roti"],
+        dessert: ["Gulab Jamun", "Fruit Custard"],
+        drinks: ["Masala Chaas", "Lemonade"]
+      },
+      groceryList: {
+        costco: ["Rice bulk pack", "Milk", "Disposable plates", "Drinks", "Dessert supplies"],
+        indianStore: ["Paneer", "Dal", "Spices", "Naan / Roti", "Makhana"],
+        walmart: ["Vegetables", "Salad items", "Napkins", "Cups", "Water bottles"]
+      },
+      quantityEstimate: {
+        rice: `${Math.ceil(guests * 0.25)} cups`,
+        rotiNaan: `${guests * 2} pieces`,
+        curry: `${Math.ceil(guests / 5)} large trays`,
+        dessert: `${guests} servings`,
+        drinks: `${Math.ceil(guests * 1.5)} servings`
+      }
+    });
+  } catch (error) {
+    console.error("Party planner error:", error);
+    res.status(500).json({ error: "Unable to generate party plan" });
+  }
+});
+
+app.post("/api/ai/photo-calorie-scan", async (req, res) => {
+  try {
+    const { imageBase64 } = req.body || {};
+
+    if (!imageBase64) {
+      return res.status(400).json({
+        error: "imageBase64 is required"
+      });
+    }
+
+    // FIX: OpenAI's vision API requires a full data URI
+    // (data:image/<type>;base64,<data>). If the client sent raw base64
+    // without the prefix, this previously failed silently/threw.
+    // Default to image/jpeg if no prefix is present.
+    const imageUrl = imageBase64.startsWith("data:")
+      ? imageBase64
+      : `data:image/jpeg;base64,${imageBase64}`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4.1-mini",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `
+Analyze this food image and estimate calories.
+Return JSON only:
+{
+  "foodName": "...",
+  "estimatedCalories": 400,
+  "protein": 20,
+  "carbs": 45,
+  "fat": 12,
+  "confidence": "Low / Medium / High",
+  "notes": "..."
+}
+
+Be conservative. Mention uncertainty if portion size is unclear.
+`
+            },
+            {
+              type: "image_url",
+              image_url: {
+                url: imageUrl
+              }
+            }
+          ]
+        }
+      ],
+      temperature: 0.3,
+      response_format: { type: "json_object" }
+    });
+
+    res.json(JSON.parse(completion.choices[0].message.content));
+  } catch (error) {
+    console.error("Photo calorie scan error:", error);
+    res.status(500).json({
+      foodName: "Unknown food",
+      estimatedCalories: 0,
+      protein: 0,
+      carbs: 0,
+      fat: 0,
+      confidence: "Low",
+      notes: "Unable to scan image right now."
+    });
+  }
+});
+
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
@@ -613,3 +753,4 @@ const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
